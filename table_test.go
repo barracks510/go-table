@@ -58,6 +58,36 @@ func TestMakeTableSimple(t *testing.T) {
 	}
 }
 
+func TestMakeMultiRowTable(t *testing.T) {
+	head := []interface{}{"aa", "bb", "cc"}
+	body := [][]interface{}{{"aa", 2, 3}, {"bb", 5, 5.5}}
+	expected := []byte(`<table>
+<thead>
+<tr>
+<th align="center">aa</th><th align="center">bb</th><th align="center">cc</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="center">aa</td><td align="center">2</td><td align="center">3</td>
+</tr>
+<tr>
+<td align="center">bb</td><td align="center">5</td><td align="center">5.5</td>
+</tr>
+</tbody>
+</table>
+`)
+	r, err := MakeMultiRowTable(head, body)
+	if err != nil {
+		t.Error(err)
+	}
+	actual, _ := ioutil.ReadAll(r)
+	if bytes.Compare(expected, actual) != 0 {
+		t.Errorf("Got %s, expected %s", actual, expected)
+	}
+}
+
 func TestMakeTableComplex(t *testing.T) {
 	data := map[string]interface{}{"tableValue": map[interface{}]interface{}{"intValue": 1}}
 	expected := []byte(`<table>
