@@ -14,7 +14,8 @@ const (
 )
 
 var (
-	ErrBadType = errors.New("Type not supported")
+	ErrBadType           = errors.New("Type not supported")
+	ErrColumnsNotMatched = errors.New("columns not matched")
 )
 
 func Table(header io.Reader, body io.Reader) io.Reader {
@@ -122,4 +123,26 @@ func MakeTable(raw interface{}) (io.Reader, error) {
 		return makeTable(data), nil
 	}
 	return nil, ErrBadType
+}
+
+func MakeMultiRowTable(head []interface{}, body [][]interface{}) (io.Reader, error) {
+	var thead []io.Reader
+	var tbody []io.Reader
+	var trow []io.Reader
+	columnCount := len(head)
+	for _, value := range head {
+		thead = append(thead, TableHeaderCell(makeCell(value), Center))
+	}
+	for _, row := range body {
+		trow = nil
+		if columnCount != len(row) {
+			return nil, ErrColumnsNotMatched
+		}
+		for _, value := range row {
+			trow = append(trow, TableCell(makeCell(value), Center))
+		}
+		tbody = append(tbody, TableRow(io.MultiReader(trow...)))
+	}
+
+	return Table(TableRow(io.MultiReader(thead...)), io.MultiReader(tbody...)), nil
 }
